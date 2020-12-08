@@ -296,23 +296,35 @@ public class SpringApplication {
 	 * @return a running {@link ApplicationContext}
 	 */
 	public ConfigurableApplicationContext run(String... args) {
+		//时间监控
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 		ConfigurableApplicationContext context = null;
 		Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>();
+		//java.awt.headless是J2SE的一种模式用于在缺少显示屏、键盘或者鼠标时的系统配置，很多监控工具如jconsole 需要将该值设置为true，系统变量默认为true
 		configureHeadlessProperty();
+		//获取spring.factories中的监听器变量，args为指定的参数数组，默认为当前类SpringApplication
+		//第一步：获取并启动监听器
 		SpringApplicationRunListeners listeners = getRunListeners(args);
 		listeners.starting();
 		try {
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
+			//第二步：构造容器环境
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
+			//设置需要忽略的bean
 			configureIgnoreBeanInfo(environment);
+			//打印banner
 			Banner printedBanner = printBanner(environment);
+			//第三步：创建容器
 			context = createApplicationContext();
+			//第四步：实例化SpringBootExceptionReporter.class，用来支持报告关于启动的错误
 			exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
 					new Class[] { ConfigurableApplicationContext.class }, context);
+			//第五步：准备容器
 			prepareContext(context, environment, listeners, applicationArguments, printedBanner);
+			//第六步：刷新容器
 			refreshContext(context);
+			//第七步：刷新容器后的扩展接口
 			afterRefresh(context, applicationArguments);
 			stopWatch.stop();
 			if (this.logStartupInfo) {
@@ -338,10 +350,12 @@ public class SpringApplication {
 
 	private ConfigurableEnvironment prepareEnvironment(SpringApplicationRunListeners listeners,
 			ApplicationArguments applicationArguments) {
-		// Create and configure the environment
+		// Create and configure the environment //获取对应的ConfigurableEnvironment
 		ConfigurableEnvironment environment = getOrCreateEnvironment();
+		//配置
 		configureEnvironment(environment, applicationArguments.getSourceArgs());
 		ConfigurationPropertySources.attach(environment);
+		//发布环境已准备事件，这是第二次发布事件
 		listeners.environmentPrepared(environment);
 		bindToSpringApplication(environment);
 		if (!this.isCustomEnvironment) {
@@ -420,6 +434,16 @@ public class SpringApplication {
 		return getSpringFactoriesInstances(type, new Class<?>[] {});
 	}
 
+	/**
+	 * 该方法用来获取spring.factories对应的监听器 如：
+	 * org.springframework.boot.context.event.EventPublishingRunListener
+	 *
+	 * @param type
+	 * @param parameterTypes
+	 * @param args
+	 * @param <T>
+	 * @return
+	 */
 	private <T> Collection<T> getSpringFactoriesInstances(Class<T> type, Class<?>[] parameterTypes, Object... args) {
 		ClassLoader classLoader = getClassLoader();
 		// Use names and ensure unique to protect against duplicates
@@ -429,15 +453,27 @@ public class SpringApplication {
 		return instances;
 	}
 
+	/**
+	 * 整个 springBoot 框架中获取factories的方式
+	 * @param type
+	 * @param parameterTypes
+	 * @param classLoader
+	 * @param args
+	 * @param names
+	 * @param <T>
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	private <T> List<T> createSpringFactoriesInstances(Class<T> type, Class<?>[] parameterTypes,
 			ClassLoader classLoader, Object[] args, Set<String> names) {
 		List<T> instances = new ArrayList<>(names.size());
 		for (String name : names) {
 			try {
+				//装载class文件到内存
 				Class<?> instanceClass = ClassUtils.forName(name, classLoader);
 				Assert.isAssignable(type, instanceClass);
 				Constructor<?> constructor = instanceClass.getDeclaredConstructor(parameterTypes);
+				//主要通过反射创建实例
 				T instance = (T) BeanUtils.instantiateClass(constructor, args);
 				instances.add(instance);
 			}
@@ -453,12 +489,12 @@ public class SpringApplication {
 			return this.environment;
 		}
 		switch (this.webApplicationType) {
-		case SERVLET:
-			return new StandardServletEnvironment();
-		case REACTIVE:
-			return new StandardReactiveWebEnvironment();
+		case SERVLET://基于servlet的web项目
+			return new StandardServletEnvironment();//Web程序
+		case REACTIVE://这个是spring5版本开始的新特性
+			return new StandardReactiveWebEnvironment();//响应式web环境
 		default:
-			return new StandardEnvironment();
+			return new StandardEnvironment();//普通程序
 		}
 	}
 

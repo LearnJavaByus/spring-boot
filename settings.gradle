@@ -1,5 +1,9 @@
 pluginManagement {
 	repositories {
+		//加上阿里云镜像
+		maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+		maven { url 'https://maven.aliyun.com/nexus/content/repositories/jcenter' }
+		maven { url "https://repo.spring.io/plugins-release" }
 		mavenCentral()
 		gradlePluginPortal()
 		maven {
@@ -72,6 +76,7 @@ include "spring-boot-tests:spring-boot-deployment-tests"
 include "spring-boot-tests:spring-boot-integration-tests:spring-boot-configuration-processor-tests"
 include "spring-boot-tests:spring-boot-integration-tests:spring-boot-launch-script-tests"
 include "spring-boot-tests:spring-boot-integration-tests:spring-boot-server-tests"
+//include "spring-boot-allen-test"
 
 file("${rootDir}/spring-boot-project/spring-boot-starters").eachDirMatch(~/spring-boot-starter.*/) {
 	include "spring-boot-project:spring-boot-starters:${it.name}"

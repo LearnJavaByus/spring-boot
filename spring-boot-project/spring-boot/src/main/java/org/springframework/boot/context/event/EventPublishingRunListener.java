@@ -40,6 +40,8 @@ import org.springframework.util.ErrorHandler;
  * Uses an internal {@link ApplicationEventMulticaster} for the events that are fired
  * before the context is actually refreshed.
  *
+ * 启动事件发布监听器，主要用来发布启动事件。
+ *
  * @author Phillip Webb
  * @author Stephane Nicoll
  * @author Andy Wilkinson
@@ -55,6 +57,12 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 
 	private final SimpleApplicationEventMulticaster initialMulticaster;
 
+	/**
+	 *  SpringApplication 中 createSpringFactoriesInstances 反射获取实例会触发构造函数
+	 * 通过反射获取实例时会触发EventPublishingRunListener的构造函数
+	 * @param application
+	 * @param args
+	 */
 	public EventPublishingRunListener(SpringApplication application, String[] args) {
 		this.application = application;
 		this.args = args;
