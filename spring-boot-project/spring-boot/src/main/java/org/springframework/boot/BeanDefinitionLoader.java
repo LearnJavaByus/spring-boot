@@ -133,15 +133,19 @@ class BeanDefinitionLoader {
 	private int load(Object source) {
 		Assert.notNull(source, "Source must not be null");
 		if (source instanceof Class<?>) {
+			//如果是class类型，启用注解类型
 			return load((Class<?>) source);
 		}
 		if (source instanceof Resource) {
+			//如果是resource类型，启用xml解析
 			return load((Resource) source);
 		}
 		if (source instanceof Package) {
+			//如果是package类型，启用扫描包，例如：@ComponentScan
 			return load((Package) source);
 		}
 		if (source instanceof CharSequence) {
+			//如果是字符串类型，直接加载
 			return load((CharSequence) source);
 		}
 		throw new IllegalArgumentException("Invalid source type " + source.getClass());
