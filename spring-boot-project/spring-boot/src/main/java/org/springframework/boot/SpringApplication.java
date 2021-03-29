@@ -268,8 +268,14 @@ public class SpringApplication {
 		this.resourceLoader = resourceLoader;
 		Assert.notNull(primarySources, "PrimarySources must not be null");
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+		// 设置servlet环境
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
+		//获取ApplicationContextInitializer，也是在这里开始首次加载spring.factories文件
+		/**
+		 * ApplicationContextInitialize 主要是spring ioc容器刷新之前的一个回调接口，用于处于自定义逻辑。
+		 */
 		setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+		//获取监听器，这里是第二次加载spring.factories文件
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
 		this.mainApplicationClass = deduceMainApplicationClass();
 	}
@@ -431,6 +437,14 @@ public class SpringApplication {
 				System.getProperty(SYSTEM_PROPERTY_JAVA_AWT_HEADLESS, Boolean.toString(this.headless)));
 	}
 
+	/**
+	 * args本身默认为空，但是在获取监听器的方法中，
+	 * getSpringFactoriesInstances( SpringApplicationRunListener.class, types, this, args)将当前对象作为参数，
+	 * 该方法用来获取spring.factories对应的监听器
+	 *
+	 * @param args
+	 * @return
+	 */
 	private SpringApplicationRunListeners getRunListeners(String[] args) {
 		Class<?>[] types = new Class<?>[] { SpringApplication.class, String[].class };
 		return new SpringApplicationRunListeners(logger,
@@ -480,7 +494,7 @@ public class SpringApplication {
 				Class<?> instanceClass = ClassUtils.forName(name, classLoader);
 				Assert.isAssignable(type, instanceClass);
 				Constructor<?> constructor = instanceClass.getDeclaredConstructor(parameterTypes);
-				//主要通过反射创建实例
+				//主要通过反射创建实例 , 通过反射获取实例时会触发EventPublishingRunListener的构造函数：
 				T instance = (T) BeanUtils.instantiateClass(constructor, args);
 				instances.add(instance);
 			}

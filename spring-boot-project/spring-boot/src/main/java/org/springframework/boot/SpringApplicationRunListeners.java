@@ -43,6 +43,7 @@ class SpringApplicationRunListeners {
 	}
 
 	void starting() {
+		//关键代码，这里是创建application启动事件`ApplicationStartingEvent`
 		for (SpringApplicationRunListener listener : this.listeners) {
 			listener.starting();
 		}
